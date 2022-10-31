@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using ProyectoFinalAPI_Antozzi.Entities;
+using ProyectoFinalAPI_Antozzi.Repository.Exceptions;
 using ProyectoFinalAPI_Antozzi.Services;
 
 namespace ProyectoFinalAPI_Antozzi.Controllers
@@ -13,10 +14,21 @@ namespace ProyectoFinalAPI_Antozzi.Controllers
 
 
         
-        [HttpPost]
-        public bool CrearVenta([FromBody] Venta venta, List<Producto> productosVendidos)
+        [HttpPost("{idUsuario}")]
+        public IActionResult CrearVenta([FromBody] List<Producto> productosVendidos, Int64 idUsuario)
         {
-            return VentaServices.Instance().Crear(venta, productosVendidos);
+            try
+            {
+                VentaServices.Instance().Crear(productosVendidos, idUsuario);
+            }
+            catch (TheItemDoesNotExistException ex)
+            {
+                return StatusCode(StatusCodes.Status404NotFound,ex.Message);
+            }
+            catch (InsufficientQuantityOfProductsException e) { 
+                return StatusCode(StatusCodes.Status400BadRequest,e.Message);
+            }
+            return Created("", true); 
         }
         
         [HttpGet("usuario/{id}")]

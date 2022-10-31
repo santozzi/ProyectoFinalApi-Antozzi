@@ -29,9 +29,9 @@ namespace ProyectoFinalAPI_Antozzi.Services
             return _ventaModel.GetVentasByIdUsuer(idUsuario);
         }
 
-        public bool Crear(Venta venta, List<Producto> productosVendidos)
+        public bool Crear(List<Producto> productosVendidos,Int64 idUsuario)
         {
-            return _ventaModel.Add(venta, productosVendidos);
+            return _ventaModel.Add(productosVendidos,idUsuario);
         }
         public bool Delete(Int64 id)
         {

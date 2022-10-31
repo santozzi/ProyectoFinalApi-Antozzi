@@ -16,51 +16,67 @@ namespace ProyectoFinalAPI_Antozzi.Repository.SQLServer
         public Venta Add(Venta entity)
         {
 
-            Int32 idUsuario = 0;
+            Int64 idVenta = 0;
             string sql = $"INSERT " +
                          $"INTO {TABLE} (Comentarios, IdUsuario ) " +
                          $"VALUES (@Comentarios, @IdUsuario); " +
                          $"SELECT @@IDENTITY";
 
-
-            using (SqlConnection connection = new SqlConnection(_connectionString))
+            if (UsuarioServices.Instance().isExistUsusario(entity.IdUsuario))
             {
-                using (SqlCommand cmd = new SqlCommand(sql, connection))
+                using (SqlConnection connection = new SqlConnection(_connectionString))
                 {
-                    connection.Open();
-                    cmd.Parameters.Add(new SqlParameter("Comentarios", SqlDbType.Text) { Value = entity.Comentarios });
-                    cmd.Parameters.Add(new SqlParameter("IdUsuario", SqlDbType.BigInt) { Value = entity.IdUsuario });
+                    using (SqlCommand cmd = new SqlCommand(sql, connection))
+                    {
+                        connection.Open();
+                        cmd.Parameters.Add(new SqlParameter("Comentarios", SqlDbType.Text) { Value = entity.Comentarios });
+                        cmd.Parameters.Add(new SqlParameter("IdUsuario", SqlDbType.BigInt) { Value = entity.IdUsuario });
 
-                    idUsuario = Convert.ToInt32(cmd.ExecuteScalar());
-                    connection.Close();
+                        idVenta = Convert.ToInt64(cmd.ExecuteScalar());
+                        connection.Close();
+                    }
+                }
+                entity.Id = idVenta;
+                if (idVenta == 0)
+                {
+                    return null;
                 }
             }
-            entity.Id = idUsuario;
-            if (idUsuario == 0)
-            {
-                return null;
+            else {
+                throw new TheItemDoesNotExistException("El usuario no existe");
             }
-
             return entity;
         }
 
-        public bool Add(Venta venta, List<Producto> productosVendidos)
+        public bool Add(List<Producto> productosVendidos, Int64 idUsuario)
         {
             bool resultadoExitoso = false;
             try
             {
                 resultadoExitoso = verificarStock(productosVendidos);
+                
             }
             catch (TheItemDoesNotExistException ex)
             {
                 throw new TheItemDoesNotExistException(ex.Message);
             }
 
-            if (resultadoExitoso) {
-                foreach (Producto productoVendido in productosVendidos) {
-                    ProductoVendido prodVend = new ProductoVendido {
+            if (resultadoExitoso)
+            {
+                foreach (Producto productoVendido in productosVendidos)
+                {
+                    Venta venta = new Venta();
+                    venta.IdUsuario = idUsuario;
+                    venta.Comentarios = "";
+                    if (productoVendido.Stock <= 0)
+                    {
+                        throw new InsufficientQuantityOfProductsException("El stock del producto debe ser mayor a 0");
+                    }
+                    ProductoVendido prodVend = new ProductoVendido
+                    {
                         IdProducto = productoVendido.Id,
                         Stock = productoVendido.Stock,
+
                         IdVenta = this.Add(venta).Id,
 
                     };
@@ -70,11 +86,15 @@ namespace ProyectoFinalAPI_Antozzi.Repository.SQLServer
                     {
                         ProductoServices.Instance().SubstractProductStock(productoVendido.Id, productoVendido.Stock);
                     }
-                    catch (InsufficientQuantityOfProductsException ex) { 
-                       throw new InsufficientQuantityOfProductsException(ex.Message);
+                    catch (InsufficientQuantityOfProductsException ex)
+                    {
+                        throw new InsufficientQuantityOfProductsException(ex.Message);
                     }
-                    }
-                
+                }
+
+            }
+            else {
+                throw new InsufficientQuantityOfProductsException("No hay stock para cubrir la operacion");
             }
             
 
