@@ -7,11 +7,19 @@ namespace ProyectoFinalAPI_Antozzi.Services
     public class ProductoVendidoServices
     {
         protected readonly IProductoVendido _productoVendido;
-        public ProductoVendidoServices()
+        protected static ProductoVendidoServices _instance;
+        private ProductoVendidoServices()
         {
             _productoVendido = new ProductoVendidoModel();
         }
 
+
+        public static ProductoVendidoServices Instance() {
+            if (_instance == null) { 
+               _instance = new ProductoVendidoServices();
+            }
+          return _instance;
+        }
         public List<Producto> GetByUserName(string userName)
         {
             return _productoVendido.GetByUserName(userName);
@@ -21,12 +29,12 @@ namespace ProyectoFinalAPI_Antozzi.Services
             return _productoVendido.Add(entity);
         }
 
-        public bool Delete(int id)
+        public bool Delete(Int64 id)
         {
             return _productoVendido.Delete(id);
 
         }
-        public ProductoVendido Get(int id)
+        public ProductoVendido Get(Int64 id)
         {
             return _productoVendido.Get(id);
         }
@@ -38,7 +46,7 @@ namespace ProyectoFinalAPI_Antozzi.Services
         {
             return _productoVendido.GetByIdUsuario(id);
         }
-        public bool Update(ProductoVendido entity, int id)
+        public bool Update(ProductoVendido entity, Int64 id)
         {
             return _productoVendido.Update(entity, id);
         }

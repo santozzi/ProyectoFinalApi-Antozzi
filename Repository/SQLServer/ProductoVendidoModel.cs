@@ -9,11 +9,9 @@ namespace ProyectoFinalAPI_Antozzi.Repository.SQLServer
     public class ProductoVendidoModel : ConexionString, IProductoVendido
     {
         private const string TABLE = "ProductoVendido";
-        protected UsuarioServices usuarioServices;
+    
 
-        public ProductoVendidoModel() {
-          usuarioServices = new UsuarioServices();
-        }
+   
         public ProductoVendido Add(ProductoVendido entity)
         {
             Int64 idProductoVendido = 0;
@@ -49,7 +47,7 @@ namespace ProyectoFinalAPI_Antozzi.Repository.SQLServer
             return productoVendido;
         }
 
-        public bool Delete(int id)
+        public bool Delete(Int64 id)
         {
            
             
@@ -76,7 +74,7 @@ namespace ProyectoFinalAPI_Antozzi.Repository.SQLServer
             return idExist;
         }
 
-        public ProductoVendido Get(int id)
+        public ProductoVendido Get(Int64 id)
         {
             ProductoVendido productoVendido = null;
             string sql = $"SELECT * FROM {TABLE} WHERE id LIKE @id";
@@ -177,7 +175,7 @@ namespace ProyectoFinalAPI_Antozzi.Repository.SQLServer
         public List<Producto> GetByUserName(string userName)
         {
             List<Producto> productos = new List<Producto>();
-            Int64 id = usuarioServices.GetIdByNombreUsuario(userName);
+            Int64 id = UsuarioServices.Instance().GetIdByNombreUsuario(userName);
             if (id > 0) {
                 productos = this.GetByIdUsuario(id);
             }
@@ -185,7 +183,7 @@ namespace ProyectoFinalAPI_Antozzi.Repository.SQLServer
 
         }
 
-        public bool Update(ProductoVendido entity, int id)
+        public bool Update(ProductoVendido entity, Int64 id)
         {
             ProductoVendido productoVendido = this.Get(id);
 

@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using ProyectoFinalAPI_Antozzi.Entities;
+using ProyectoFinalAPI_Antozzi.Repository.Exceptions;
 using ProyectoFinalAPI_Antozzi.Services;
 
 namespace ProyectoFinalAPI_Antozzi.Controllers
@@ -8,46 +9,78 @@ namespace ProyectoFinalAPI_Antozzi.Controllers
     [Route("[controller]")]
     public class ProductoController : ControllerBase
     {
-        private readonly ProductoServices _productoServices;
-        public ProductoController()
-        {
-            _productoServices = new ProductoServices();
-        }
+       
+ 
 
         [HttpGet("usuario/{id}")]
-        public List<Producto> GetProductoByIdUsuario(int id)
+        public IEnumerable<Producto> GetProductoByIdUsuario(int id)
         {
 
-            List<Producto> productos = _productoServices.GetByIdUsuario(id);
+            IEnumerable<Producto> productos = ProductoServices.Instance().GetByIdUsuario(id);
+
+
             return productos;
 
         }
+
         [HttpGet("{id}")]
-        public Producto Get(int id)
+        [Produces("application/json",Type = typeof(Producto))]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult Get(Int64 id)
         {
-            return _productoServices.Get(id);
+
+            
+          Producto producto = null;
+            try
+            {
+                producto= ProductoServices.Instance().Get(id);
+            }
+            catch (TheItemDoesNotExistException ex) {
+
+                return StatusCode(StatusCodes.Status404NotFound,ex.Message);
+              
+
+
+            }
+
+            return Ok(producto);
         }
         [HttpGet]
         public List<Producto> GetAll()
         {
-            return _productoServices.GetAll();
+            return ProductoServices.Instance().GetAll();
         }
 
         [HttpPost]
-        public Producto Crear([FromBody] Producto entity)
+        [Produces("application/json", Type = typeof(Producto))]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status201Created,Type= typeof(Producto))]
+        public IActionResult Crear([FromBody] Producto entity)
         {
-            return _productoServices.Add(entity);
+            Producto res = null;
+            try { 
+                res = ProductoServices.Instance().Add(entity);
+            } catch (TheItemDoesNotExistException ex) {
+                return StatusCode(StatusCodes.Status404NotFound, ex.Message);
+            }catch (InvalidParametersException e) {
+                return StatusCode(StatusCodes.Status400BadRequest, e.Message);
+            }
+            // 
+
+
+            return Created("",res);
         }
 
         [HttpPut]
         public bool Modificar([FromBody] Producto entity)
         {
-            return _productoServices.Update(entity, Convert.ToInt32(entity.Id));
+            return ProductoServices.Instance().Update(entity, Convert.ToInt32(entity.Id));
         }
         [HttpDelete("{id}")]
         public bool Delete(int id)
         {
-            return _productoServices.Delete(id);
+            return ProductoServices.Instance().Delete(id);
         }
     }
 }

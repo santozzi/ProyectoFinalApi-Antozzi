@@ -1,5 +1,7 @@
 ﻿using ProyectoFinalAPI_Antozzi.Entities;
+using ProyectoFinalAPI_Antozzi.Repository.Exceptions;
 using ProyectoFinalAPI_Antozzi.Repository.Interfaces;
+using ProyectoFinalAPI_Antozzi.Services;
 using System.Data;
 using System.Data.SqlClient;
 
@@ -9,17 +11,10 @@ namespace ProyectoFinalAPI_Antozzi.Repository.SQLServer
     public class UsuarioModel : ConexionString, IUsuarioModel
     {
         private const string TABLE = "Usuario";
-        private IVentaModel ventaModel;
-        
 
-        public UsuarioModel() {
-            
-            ventaModel = new VentaModel();
-           
-        }
         public Usuario Add(Usuario entity)
         {
-            
+
             Int32 idUsuario = 0;
             string sql = $"INSERT " +
                          $"INTO Usuario (Nombre, Apellido, NombreUsuario, Contraseña, Mail ) " +
@@ -51,7 +46,7 @@ namespace ProyectoFinalAPI_Antozzi.Repository.SQLServer
             return entity;
         }
 
-        public bool Delete(int id)
+        public bool Delete(Int64 id)
         {
             bool idExist = false;
             if (this.Get(id) != null)
@@ -60,21 +55,22 @@ namespace ProyectoFinalAPI_Antozzi.Repository.SQLServer
                 //borro los usuarios de prodcutos
                 IProductoModel model = new ProductoModel();
                 List<Producto> productos = model.GetByIdUsuario(id);
-                foreach (Producto producto in productos) {
+                foreach (Producto producto in productos)
+                {
                     if (producto.IdUsuario == id)
                     {
                         model.Delete(Convert.ToInt32(producto.Id));
                     }
                 }
 
-               // borro las ventas que contienen a usuarios
-                ventaModel.DeleteByIdUser(id);
+                // borro las ventas que contienen a usuarios
+                VentaServices.Instance().DeleteByIdUser(id);
                 //borro los usuarios sin dependencias
                 string deleteUsuarioSql = $"DELETE FROM {TABLE} WHERE Id = @Id";
-                
+
                 using (SqlConnection connection = new SqlConnection(_connectionString))
                 {
-            
+
                     using (SqlCommand cmdUsuario = new SqlCommand(deleteUsuarioSql, connection))
                     {
                         connection.Open();
@@ -88,7 +84,7 @@ namespace ProyectoFinalAPI_Antozzi.Repository.SQLServer
             return idExist;
         }
 
-        public Usuario Get(int id)
+        public Usuario Get(Int64 id)
         {
             Usuario usuario = null;
             string sql = $"SELECT * FROM {TABLE} WHERE id LIKE @id";
@@ -118,6 +114,7 @@ namespace ProyectoFinalAPI_Antozzi.Repository.SQLServer
                 connection.Close();
 
             }
+
             return usuario;
         }
 
@@ -177,7 +174,7 @@ namespace ProyectoFinalAPI_Antozzi.Repository.SQLServer
                         Mail = reader.GetString(5),
                     };
                 }
-                
+
                 connection.Close();
 
             }
@@ -206,6 +203,12 @@ namespace ProyectoFinalAPI_Antozzi.Repository.SQLServer
             return idUsuario;
         }
 
+        public bool isExistUsuario(long id)
+        {
+            Usuario usuarioEncontrado = this.Get(id);
+            return usuarioEncontrado != null;
+        }
+
         public Usuario IsUsernameAndPassword(string username, string password)
         {
             Usuario usuarioARetornar = new Usuario();
@@ -228,7 +231,7 @@ namespace ProyectoFinalAPI_Antozzi.Repository.SQLServer
 
                 if (reader.Read())
                 {
-                   
+
                     usuarioARetornar.Id = reader.GetInt64(0);
                     usuarioARetornar.Nombre = reader.GetString(1);
                     usuarioARetornar.Apellido = reader.GetString(2);
@@ -247,7 +250,7 @@ namespace ProyectoFinalAPI_Antozzi.Repository.SQLServer
             return usuarioARetornar;
         }
 
-        public bool Update(Usuario entity, int id)
+        public bool Update(Usuario entity, Int64 id)
         {
             bool seActualizo = false;
 
@@ -294,12 +297,12 @@ namespace ProyectoFinalAPI_Antozzi.Repository.SQLServer
                     }
                     seActualizo = true;
                 }
-               
+
             }
 
             return seActualizo;
         }
 
     }
-    
+
 }

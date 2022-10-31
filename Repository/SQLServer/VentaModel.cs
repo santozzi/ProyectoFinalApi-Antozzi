@@ -2,12 +2,17 @@
 using System.Data;
 using ProyectoFinalAPI_Antozzi.Repository.Interfaces;
 using ProyectoFinalAPI_Antozzi.Entities;
+using ProyectoFinalAPI_Antozzi.Services;
+using ProyectoFinalAPI_Antozzi.Repository.Exceptions;
 
 namespace ProyectoFinalAPI_Antozzi.Repository.SQLServer
 {
     public class VentaModel : ConexionString, IVentaModel
     {
         private const string TABLE = "Venta";
+   
+
+        
         public Venta Add(Venta entity)
         {
 
@@ -39,7 +44,69 @@ namespace ProyectoFinalAPI_Antozzi.Repository.SQLServer
             return entity;
         }
 
-        public bool Delete(int id)
+        public bool Add(Venta venta, List<Producto> productosVendidos)
+        {
+            bool resultadoExitoso = false;
+            try
+            {
+                resultadoExitoso = verificarStock(productosVendidos);
+            }
+            catch (TheItemDoesNotExistException ex)
+            {
+                throw new TheItemDoesNotExistException(ex.Message);
+            }
+
+            if (resultadoExitoso) {
+                foreach (Producto productoVendido in productosVendidos) {
+                    ProductoVendido prodVend = new ProductoVendido {
+                        IdProducto = productoVendido.Id,
+                        Stock = productoVendido.Stock,
+                        IdVenta = this.Add(venta).Id,
+
+                    };
+                    ProductoVendidoServices.Instance().Add(prodVend);
+                    //resto a producto el stock, ya se ferificó que exista el stock, dudo de la importancia de este try.
+                    try
+                    {
+                        ProductoServices.Instance().SubstractProductStock(productoVendido.Id, productoVendido.Stock);
+                    }
+                    catch (InsufficientQuantityOfProductsException ex) { 
+                       throw new InsufficientQuantityOfProductsException(ex.Message);
+                    }
+                    }
+                
+            }
+            
+
+            return resultadoExitoso;
+        }
+
+        private bool verificarStock(List<Producto> productosVendidos)
+        {
+            bool hayStockDeTodo = false;
+            foreach (Producto productoVendido in productosVendidos) {
+                try
+                {
+                    Producto productoDeProducto = ProductoServices.Instance().Get(productoVendido.Id);
+
+                    hayStockDeTodo = productoDeProducto.Stock >= productoVendido.Stock;
+                    if (!hayStockDeTodo)
+                    {
+                        break;
+                    }
+                }
+                catch (TheItemDoesNotExistException ex)
+                {
+                    throw new TheItemDoesNotExistException(ex.Message);
+                }
+            }
+
+
+            
+            return hayStockDeTodo;
+        }
+
+        public bool Delete(Int64 id)
         {
             bool idExist = false;
             if (this.Get(id) != null)
@@ -65,7 +132,7 @@ namespace ProyectoFinalAPI_Antozzi.Repository.SQLServer
             return idExist;
         }
 
-        public bool DeleteByIdUser(int id)
+        public bool DeleteByIdUser(Int64 id)
         {
             bool idExist = false;
             if (this.Get(id) != null)
@@ -91,7 +158,7 @@ namespace ProyectoFinalAPI_Antozzi.Repository.SQLServer
             return idExist;
         }
 
-        public Venta Get(int id)
+        public Venta Get(Int64 id)
         {
 
             Venta venta = null;
@@ -152,7 +219,7 @@ namespace ProyectoFinalAPI_Antozzi.Repository.SQLServer
             return ventas;
         }
 
-        public List<Venta> GetVentasByIdUsuer(int idUsuario)
+        public List<Venta> GetVentasByIdUsuer(Int64 idUsuario)
         {
             List<Venta> ventas = new List<Venta>();
             string sql = $"SELECT * " +
@@ -184,7 +251,7 @@ namespace ProyectoFinalAPI_Antozzi.Repository.SQLServer
             return ventas;
         }
 
-        public bool Update(Venta entity, int id)
+        public bool Update(Venta entity, Int64 id)
         {
             
             Venta venta = Get(id);

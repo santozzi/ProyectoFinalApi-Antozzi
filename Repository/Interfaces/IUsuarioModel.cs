@@ -23,6 +23,7 @@ namespace ProyectoFinalAPI_Antozzi.Repository.Interfaces
         /// <param name="nombreUsuario"></param>
         /// <returns>Id del Usuario si existe y 0 de lo contrario</returns>
         Int64 GetIdByNombreUsuario(string nombreUsuario);
+        bool isExistUsuario(Int64 id);
 
     }
 }

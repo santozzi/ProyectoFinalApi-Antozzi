@@ -9,7 +9,6 @@ namespace ProyectoFinalAPI_Antozzi.Entities
     public class Venta
     {
         protected Int64 _id;
-        //pongo comentarios por lo que dice en el pdf, yo supongo que debe ir en singular, a menos que sea un array o lista
         protected string _comentarios;
         protected Int64 _idUsuario;
         public Venta(string comentarios,Int64 idUsuario) {

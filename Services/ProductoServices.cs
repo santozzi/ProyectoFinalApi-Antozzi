@@ -8,20 +8,29 @@ namespace ProyectoFinalAPI_Antozzi.Services
     public class ProductoServices 
     {
         protected readonly IProductoModel _productoModel;
-        public ProductoServices() {
+        protected static ProductoServices? _instance;
+
+        private ProductoServices() {
             _productoModel = new ProductoModel();
+        }
+
+        public static ProductoServices Instance() {
+            if (_instance == null) { 
+                _instance = new ProductoServices();
+            }
+          return _instance;
         }
         public Producto Add(Producto entity)
         {
             return _productoModel.Add(entity);
         }
 
-        public bool Delete(int id)
+        public bool Delete(Int64 id)
         {
             return this._productoModel.Delete(id);
         }
 
-        public Producto Get(int id)
+        public Producto Get(Int64 id)
         {
             return _productoModel.Get(id);
         }
@@ -32,16 +41,18 @@ namespace ProyectoFinalAPI_Antozzi.Services
 
         }
 
-        public List<Producto> GetByIdUsuario(int id)
+        public List<Producto> GetByIdUsuario(Int64 id)
         {
             return _productoModel.GetByIdUsuario(id);
         }
 
-        public bool Update(Producto entity,int id)
+        public bool Update(Producto entity, Int64 id)
         {
             return _productoModel.Update(entity,id);
         }
+        public void SubstractProductStock(Int64 idProducto, int quantity) { 
+           _productoModel.SubstractProductStock(idProducto,quantity);
+        }
 
-        
     }
 }

@@ -5,9 +5,9 @@
     {
         T Add(T entity);
         List<T> GetAll();
-        T Get(int id);
-        bool Update(T entity, int id); 
-        bool Delete(int id);
+        T Get(Int64 id);
+        bool Update(T entity, Int64 id); 
+        bool Delete(Int64 id);
         
     }
 }

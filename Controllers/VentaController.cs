@@ -8,46 +8,46 @@ namespace ProyectoFinalAPI_Antozzi.Controllers
     [Route("[controller]")]
     public class VentaController : ControllerBase
     {
-        private readonly VentaServices _ventaServices;
+        
 
-        public VentaController()
-        {
-            _ventaServices = new VentaServices();
-        }
+
+
+        
         [HttpPost]
-        public Venta CrearVenta([FromBody] Venta venta)
+        public bool CrearVenta([FromBody] Venta venta, List<Producto> productosVendidos)
         {
-            return _ventaServices.Crear(venta);
+            return VentaServices.Instance().Crear(venta, productosVendidos);
         }
+        
         [HttpGet("usuario/{id}")]
         public List<Venta> GetVentasByIdUsuer(int idUsuario)
         {
-            return _ventaServices.GetVentasByIdUsuer(idUsuario);
+            return VentaServices.Instance().GetVentasByIdUsuer(idUsuario);
         }
         [HttpDelete("{id}")]
         public bool Delete(int id)
         {
-            return _ventaServices.Delete(id);
+            return VentaServices.Instance().Delete(id);
         }
         [HttpDelete("usuario/{id}")]
         public bool DeleteByIdUser(int id)
         {
-            return _ventaServices.DeleteByIdUser(id);
+            return VentaServices.Instance().DeleteByIdUser(id);
         }
         [HttpGet("{id}")]
         public Venta Get(int id)
         {
-            return _ventaServices.Get(id);
+            return VentaServices.Instance().Get(id);
         }
         [HttpGet]
         public List<Venta> GetAll()
         {
-            return _ventaServices.GetAll();
+            return VentaServices.Instance().GetAll();
         }
         [HttpPut]
         public bool Update([FromBody]Venta entity)
         {
-            return _ventaServices.Update(entity, Convert.ToInt32(entity.Id));
+            return VentaServices.Instance().Update(entity, Convert.ToInt32(entity.Id));
         }
 
 
