@@ -31,7 +31,7 @@ namespace ProyectoFinalAPI_Antozzi.Controllers
             return Created("", true); 
         }
         
-        [HttpGet("usuario/{id}")]
+        [HttpGet("usuario/{idUsuario}")]
         public List<Venta> GetVentasByIdUsuer(int idUsuario)
         {
             return VentaServices.Instance().GetVentasByIdUsuer(idUsuario);
