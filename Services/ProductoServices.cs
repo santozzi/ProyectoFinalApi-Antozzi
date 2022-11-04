@@ -53,6 +53,9 @@ namespace ProyectoFinalAPI_Antozzi.Services
         public void SubstractProductStock(Int64 idProducto, int quantity) { 
            _productoModel.SubstractProductStock(idProducto,quantity);
         }
+        public void AddProductStock(long idProducto, int quantity) { 
+           _productoModel.AddProductStock(idProducto,quantity); 
+        }
 
     }
 }

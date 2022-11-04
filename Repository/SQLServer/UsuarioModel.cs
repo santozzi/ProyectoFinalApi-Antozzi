@@ -21,6 +21,8 @@ namespace ProyectoFinalAPI_Antozzi.Repository.SQLServer
                          $"VALUES (@Nombre, @Apellido, @NombreUsuario, @Contraseña, @Mail); " +
                          $"SELECT @@IDENTITY";
 
+            verificarUsuario(entity);
+
             if (this.GetByNombreUsuario(entity.NombreUsuario) == null)
             {
                 using (SqlConnection connection = new SqlConnection(_connectionString))
@@ -42,6 +44,9 @@ namespace ProyectoFinalAPI_Antozzi.Repository.SQLServer
                 {
                     return null;
                 }
+            }
+            else {
+                throw new InvalidParametersException("El nombre de usuario ya existe");
             }
             return entity;
         }
@@ -80,6 +85,9 @@ namespace ProyectoFinalAPI_Antozzi.Repository.SQLServer
                     }
                 }
                 idExist = true;
+            }
+            else {
+                throw new TheItemDoesNotExistException("No existe un usuario con ese id");
             }
             return idExist;
         }
@@ -178,6 +186,7 @@ namespace ProyectoFinalAPI_Antozzi.Repository.SQLServer
                 connection.Close();
 
             }
+       
             return usuario;
         }
 
@@ -269,11 +278,21 @@ namespace ProyectoFinalAPI_Antozzi.Repository.SQLServer
             if (usuario != null)
             {
                 Usuario usuarioAEditar = this.GetByNombreUsuario(entity.NombreUsuario);
+                //si el suario es null significa que entre los cambios esta un cambio de NombreUsuario y puedo cambiarlo ya que no existe un 
+                //usuario con ese NombreUsuario
+
+                // si el NombreDeUsuario es distinto de null, significa que ya existe y no se puede cambiar por ese nombre de usuario
+                // salvo que el id de usuarioAEditar sea el mismo que el id recibido por parametro, lo que significa que el nombreUsuario encontrado
+                // es de la misma persona
                 if (
                     usuarioAEditar == null ||
                     usuarioAEditar != null && usuarioAEditar.Id == id
                     )
                 {
+                    //verifico que esten todos los datos para modifcar al usuario encontrado
+                    verificarUsuario(entity);
+
+
                     using (SqlConnection connection = new SqlConnection(_connectionString))
                     {
 
@@ -297,10 +316,37 @@ namespace ProyectoFinalAPI_Antozzi.Repository.SQLServer
                     }
                     seActualizo = true;
                 }
+                else {
+                    throw new InvalidParametersException("El nombre de usuario ya existe");
+                }
 
             }
 
             return seActualizo;
+        }
+        private void verificarUsuario(Usuario entity) {
+
+            if (entity.Nombre == "")
+            {
+                throw new InvalidParametersException("El campo nombre no debe estar vacio");
+            }
+            if (entity.Apellido == "")
+            {
+                throw new InvalidParametersException("El campo apellido no debe estar vacio");
+            }
+            if (entity.NombreUsuario == "")
+            {
+                throw new InvalidParametersException("El campo nombre de usuario no debe estar vacio");
+            }
+            if (entity.Contraseña == "")
+            {
+                throw new InvalidParametersException("El campo contraseña no debe estar vacio");
+            }
+            if (entity.Mail == "")
+            {
+                throw new InvalidParametersException("El campo mail no debe estar vacio");
+            }
+
         }
 
     }

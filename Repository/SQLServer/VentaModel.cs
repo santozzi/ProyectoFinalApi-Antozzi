@@ -4,15 +4,66 @@ using ProyectoFinalAPI_Antozzi.Repository.Interfaces;
 using ProyectoFinalAPI_Antozzi.Entities;
 using ProyectoFinalAPI_Antozzi.Services;
 using ProyectoFinalAPI_Antozzi.Repository.Exceptions;
+using System.Reflection.PortableExecutable;
 
 namespace ProyectoFinalAPI_Antozzi.Repository.SQLServer
 {
     public class VentaModel : ConexionString, IVentaModel
     {
         private const string TABLE = "Venta";
-   
 
-        
+
+        public List<VentaConProducto> TraerVenta(Int64 idUsuario)
+        {
+            List<VentaConProducto> ventas = new List<VentaConProducto>();
+
+            if (this.Get(idUsuario) != null)
+            {
+
+
+                string deleteVentaSql = $@"SELECT
+                                           Venta.Id,
+                                           Venta.Comentarios,
+                                           Venta.IdUsuario,
+                                           Producto.Descripciones,
+                                           ProductoVendido.Stock
+                                           FROM ProductoVendido 
+                                           INNER JOIN Venta  ON ProductoVendido.IdVenta = Venta.Id
+                                           INNER JOIN Producto  ON ProductoVendido.IdProducto = Producto.Id
+                                           WHERE Venta.IdUsuario = @Id";
+
+
+                using (SqlConnection connection = new SqlConnection(_connectionString))
+                {
+                    using (SqlCommand cmdVendido = new SqlCommand(deleteVentaSql, connection))
+                    {
+                        connection.Open();
+                        cmdVendido.Parameters.Add(new SqlParameter("Id", SqlDbType.BigInt) { Value = idUsuario });
+                        SqlDataReader reader = cmdVendido.ExecuteReader();
+
+                        while (reader.Read())
+                        {
+                            VentaConProducto productoVendido = new VentaConProducto();
+
+                            productoVendido.Id = reader.GetInt64(0);
+                            productoVendido.Comentarios = reader.GetString(1);
+                            productoVendido.IdUsuario = reader.GetInt64(2);
+                            productoVendido.Descripciones = reader.GetString(3);
+                            productoVendido.Stock = reader.GetInt32(4);
+                            
+                            ventas.Add(productoVendido);
+                        };
+                        connection.Close();
+                    }
+
+                }
+
+            }
+            return ventas;
+        }
+
+
+
         public Venta Add(Venta entity)
         {
 
@@ -42,7 +93,8 @@ namespace ProyectoFinalAPI_Antozzi.Repository.SQLServer
                     return null;
                 }
             }
-            else {
+            else
+            {
                 throw new TheItemDoesNotExistException("El usuario no existe");
             }
             return entity;
@@ -54,49 +106,58 @@ namespace ProyectoFinalAPI_Antozzi.Repository.SQLServer
             try
             {
                 resultadoExitoso = verificarStock(productosVendidos);
-                
+
+
+
+                if (resultadoExitoso)
+                {
+
+                    Venta venta = new Venta();
+                    venta.IdUsuario = idUsuario;
+                    venta.Comentarios = "";
+                    venta.Id = this.Add(venta).Id;
+
+
+
+                    foreach (Producto productoVendido in productosVendidos)
+                    {
+
+                        if (productoVendido.Stock <= 0)
+                        {
+                            throw new InsufficientQuantityOfProductsException("El stock del producto debe ser mayor a 0");
+                        }
+                        ProductoVendido prodVend = new ProductoVendido
+                        {
+                            IdProducto = productoVendido.Id,
+                            Stock = productoVendido.Stock,
+
+                            IdVenta = venta.Id,
+
+                        };
+                        ProductoVendidoServices.Instance().Add(prodVend);
+                        //resto a producto el stock, ya se ferificó que exista el stock, dudo de la importancia de este try.
+
+                        ProductoServices.Instance().SubstractProductStock(productoVendido.Id, productoVendido.Stock);
+
+
+                    }
+
+
+                }
+                else
+                {
+                    throw new InsufficientQuantityOfProductsException("No hay stock para cubrir la operacion");
+                }
+
             }
             catch (TheItemDoesNotExistException ex)
             {
                 throw new TheItemDoesNotExistException(ex.Message);
             }
-
-            if (resultadoExitoso)
+            catch (InsufficientQuantityOfProductsException ex)
             {
-                foreach (Producto productoVendido in productosVendidos)
-                {
-                    Venta venta = new Venta();
-                    venta.IdUsuario = idUsuario;
-                    venta.Comentarios = "";
-                    if (productoVendido.Stock <= 0)
-                    {
-                        throw new InsufficientQuantityOfProductsException("El stock del producto debe ser mayor a 0");
-                    }
-                    ProductoVendido prodVend = new ProductoVendido
-                    {
-                        IdProducto = productoVendido.Id,
-                        Stock = productoVendido.Stock,
-
-                        IdVenta = this.Add(venta).Id,
-
-                    };
-                    ProductoVendidoServices.Instance().Add(prodVend);
-                    //resto a producto el stock, ya se ferificó que exista el stock, dudo de la importancia de este try.
-                    try
-                    {
-                        ProductoServices.Instance().SubstractProductStock(productoVendido.Id, productoVendido.Stock);
-                    }
-                    catch (InsufficientQuantityOfProductsException ex)
-                    {
-                        throw new InsufficientQuantityOfProductsException(ex.Message);
-                    }
-                }
-
+                throw new InsufficientQuantityOfProductsException(ex.Message);
             }
-            else {
-                throw new InsufficientQuantityOfProductsException("No hay stock para cubrir la operacion");
-            }
-            
 
             return resultadoExitoso;
         }
@@ -104,7 +165,8 @@ namespace ProyectoFinalAPI_Antozzi.Repository.SQLServer
         private bool verificarStock(List<Producto> productosVendidos)
         {
             bool hayStockDeTodo = false;
-            foreach (Producto productoVendido in productosVendidos) {
+            foreach (Producto productoVendido in productosVendidos)
+            {
                 try
                 {
                     Producto productoDeProducto = ProductoServices.Instance().Get(productoVendido.Id);
@@ -122,8 +184,28 @@ namespace ProyectoFinalAPI_Antozzi.Repository.SQLServer
             }
 
 
-            
+
             return hayStockDeTodo;
+        }
+
+        public bool DeleteVenta(Venta venta)
+        {
+            bool idExist = false;
+            try
+            {
+                if (this.Get(venta.Id) != null)
+                {
+                    ProductoVendidoServices.Instance().EliminarVenta(venta.Id);
+
+                    this.Delete(venta.Id);
+
+                }
+            }
+            catch (TheItemDoesNotExistException ex)
+            {
+                throw new TheItemDoesNotExistException(ex.Message);
+            }
+            return idExist;
         }
 
         public bool Delete(Int64 id)
@@ -204,7 +286,10 @@ namespace ProyectoFinalAPI_Antozzi.Repository.SQLServer
                 }
 
                 connection.Close();
-
+                if (venta == null)
+                {
+                    throw new TheItemDoesNotExistException("No existe venta con ese id");
+                }
             }
             return venta;
         }
@@ -273,7 +358,7 @@ namespace ProyectoFinalAPI_Antozzi.Repository.SQLServer
 
         public bool Update(Venta entity, Int64 id)
         {
-            
+
             Venta venta = Get(id);
 
             string sql = $"UPDATE {TABLE} " +
@@ -297,11 +382,14 @@ namespace ProyectoFinalAPI_Antozzi.Repository.SQLServer
                         connection.Close();
                     }
                 }
-              
+
             }
 
 
             return venta != null;
         }
+
+
+
     }
 }

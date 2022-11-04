@@ -5,11 +5,22 @@ using ProyectoFinalAPI_Antozzi.Services;
 namespace ProyectoFinalAPI_Antozzi.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
+    [Route("api/[controller]")]
     public class ProductoVendidoController : ControllerBase
     {
-       
 
+        [HttpGet("{idUsuario}")]
+        public List<ProductoVendido> TraerProductosVendidos(Int64 idUsuario)
+        {
+            return ProductoVendidoServices.Instance().GetByIdUsuario(idUsuario);
+        }
+
+
+
+
+
+
+/*
         [HttpPost]
         public ProductoVendido Add([FromBody]ProductoVendido entity)
         {
@@ -30,11 +41,7 @@ namespace ProyectoFinalAPI_Antozzi.Controllers
         {
             return ProductoVendidoServices.Instance().GetAll();
         }
-        [HttpGet("usuario/{id}")]
-        public List<Producto> GetByIdUsuario(Int64 id)
-        {
-            return ProductoVendidoServices.Instance().GetByIdUsuario(id);
-        }
+ 
         [HttpPut]
         public bool Update([FromBody]ProductoVendido entity)
         {
@@ -45,6 +52,6 @@ namespace ProyectoFinalAPI_Antozzi.Controllers
         {
             return ProductoVendidoServices.Instance().GetByUserName(userName);
         }
-
+*/
     }
 }

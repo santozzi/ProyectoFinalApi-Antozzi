@@ -53,6 +53,12 @@ namespace ProyectoFinalAPI_Antozzi.Services
         {
             return _ventaModel.Update(entity, id);
         }
+        public List<VentaConProducto> TraerVenta(Int64 idUsuario) { 
+          return _ventaModel.TraerVenta(idUsuario);
 
+        }
+        public bool DeleteVenta(Venta venta) { 
+          return _ventaModel.DeleteVenta(venta);
+        }
     }
 }

@@ -26,5 +26,7 @@ namespace ProyectoFinalAPI_Antozzi.Repository.Interfaces
         ///  Devuelve true si, los productos existen y tienen stock suficiente para la venta, y false de lo contrario
         /// </returns>
         bool Add(List<Producto> productosVendidos, Int64 idUsuario);
+        public List<VentaConProducto> TraerVenta(Int64 idUsuario);
+        public bool DeleteVenta(Venta venta);
     }
 }

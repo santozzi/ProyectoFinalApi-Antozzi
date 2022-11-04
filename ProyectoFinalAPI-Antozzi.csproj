@@ -5,6 +5,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>ProyectoFinalAPI_Antozzi</RootNamespace>
+    <UserSecretsId>001d9d5b-a681-439f-a1bb-e6547446da14</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>

@@ -9,7 +9,7 @@ namespace ProyectoFinalAPI_Antozzi.Repository.SQLServer
 {
     public class ProductoModel : ConexionString, IProductoModel
     {
-     
+
 
 
         public Producto Add(Producto entity)
@@ -20,13 +20,16 @@ namespace ProyectoFinalAPI_Antozzi.Repository.SQLServer
                          $"INTO Producto (Descripciones, Costo, PrecioVenta, Stock, IdUsuario ) " +
                          $"VALUES (@Descripcion, @Costo,@PrecioDeVenta, @Stock, @IdUsuario); " +
                          $"SELECT @@IDENTITY";
-            if (entity.Costo <= 0) {
+            if (entity.Costo <= 0)
+            {
                 throw new InvalidParametersException("El costo del producto debe ser mayor que 0");
             }
-            if (entity.PrecioDeVenta <= 0) {
+            if (entity.PrecioVenta <= 0)
+            {
                 throw new InvalidParametersException("El precio de venta debe ser mayor que 0");
             }
-            if (entity.Stock <= 0) {
+            if (entity.Stock <= 0)
+            {
                 throw new InvalidParametersException("El stock debe ser mayor que 0");
             }
 
@@ -43,9 +46,9 @@ namespace ProyectoFinalAPI_Antozzi.Repository.SQLServer
                     using (SqlCommand cmd = new SqlCommand(sql, connection))
                     {
                         connection.Open();
-                        cmd.Parameters.Add(new SqlParameter("Descripcion", SqlDbType.Text) { Value = entity.Descripcion });
+                        cmd.Parameters.Add(new SqlParameter("Descripcion", SqlDbType.Text) { Value = entity.Descripciones });
                         cmd.Parameters.Add(new SqlParameter("Costo", SqlDbType.Decimal) { Value = entity.Costo });
-                        cmd.Parameters.Add(new SqlParameter("PrecioDeVenta", SqlDbType.Decimal) { Value = entity.PrecioDeVenta });
+                        cmd.Parameters.Add(new SqlParameter("PrecioDeVenta", SqlDbType.Decimal) { Value = entity.PrecioVenta });
                         cmd.Parameters.Add(new SqlParameter("Stock", SqlDbType.Int) { Value = entity.Stock });
 
                         cmd.Parameters.Add(new SqlParameter("IdUsuario", SqlDbType.Int) { Value = entity.IdUsuario });
@@ -59,11 +62,42 @@ namespace ProyectoFinalAPI_Antozzi.Repository.SQLServer
 
                 Console.WriteLine("hola soy sergio");
             }
-            else {
+            else
+            {
                 throw new TheItemDoesNotExistException("El el usuario que realiza la compra no existe");
             }
 
             return entity;
+        }
+
+        public void AddProductStock(long idProducto, int quantity)
+        {
+            try
+            {
+                Producto productoBase = this.Get(idProducto);
+                //no deberia entrar nunca acá
+                if (quantity <=0)
+                {
+                    throw new InvalidParametersException($"El stock del producto {productoBase.Descripciones} debe ser mayor a 0");
+                }
+                else
+                {
+                    productoBase.Stock += quantity;
+                    this.Update(productoBase, productoBase.Id);
+                }
+
+
+
+
+            }
+            catch (TheItemDoesNotExistException ex)
+            {
+                throw new TheItemDoesNotExistException(ex.Message);
+            }
+
+
+
+
         }
 
         //Borra el producto por id y su dependencia en ProductoVendido usar con precaución, se recomienda hacer un backup de la base antes de utilizar este metodo.
@@ -122,9 +156,9 @@ namespace ProyectoFinalAPI_Antozzi.Repository.SQLServer
                 {
                     producto = new Producto();
                     producto.Id = reader.GetInt64(0);
-                    producto.Descripcion = reader.GetString(1);
+                    producto.Descripciones = reader.GetString(1);
                     producto.Costo = (double)reader.GetDecimal(2);
-                    producto.PrecioDeVenta = (double)reader.GetDecimal(3);
+                    producto.PrecioVenta = (double)reader.GetDecimal(3);
                     producto.Stock = reader.GetInt32(4);
                     producto.IdUsuario = reader.GetInt64(5);
 
@@ -139,7 +173,8 @@ namespace ProyectoFinalAPI_Antozzi.Repository.SQLServer
             }
             return producto;
         }
-
+        
+        
         public List<Producto> GetAll()
         {
             List<Producto> productos = new List<Producto>();
@@ -156,9 +191,9 @@ namespace ProyectoFinalAPI_Antozzi.Repository.SQLServer
                 {
                     Producto producto = new Producto();
                     producto.Id = reader.GetInt64(0);
-                    producto.Descripcion = reader.GetString(1);
+                    producto.Descripciones = reader.GetString(1);
                     producto.Costo = (double)reader.GetDecimal(2);
-                    producto.PrecioDeVenta = (double)reader.GetDecimal(3);
+                    producto.PrecioVenta = (double)reader.GetDecimal(3);
                     producto.Stock = reader.GetInt32(4);
                     producto.IdUsuario = reader.GetInt64(5);
                     productos.Add(producto);
@@ -169,7 +204,7 @@ namespace ProyectoFinalAPI_Antozzi.Repository.SQLServer
             }
             return productos;
         }
-
+        
         public List<Producto> GetByIdUsuario(Int64 id)
         {
             List<Producto> productos = new List<Producto>();
@@ -188,9 +223,9 @@ namespace ProyectoFinalAPI_Antozzi.Repository.SQLServer
                     {
                         Producto producto = new Producto();
                         producto.Id = reader.GetInt64(0);
-                        producto.Descripcion = reader.GetString(1);
+                        producto.Descripciones = reader.GetString(1);
                         producto.Costo = (double)reader.GetDecimal(2);
-                        producto.PrecioDeVenta = (double)reader.GetDecimal(3);
+                        producto.PrecioVenta = (double)reader.GetDecimal(3);
                         producto.Stock = reader.GetInt32(4);
                         producto.IdUsuario = reader.GetInt64(5);
                         productos.Add(producto);
@@ -201,23 +236,25 @@ namespace ProyectoFinalAPI_Antozzi.Repository.SQLServer
             }
             return productos;
         }
+       
+
 
         public void SubstractProductStock(Int64 idProducto, int quantity)
         {
             try
             {
-             
-                    Producto productoBase = this.Get(idProducto);
-                    if (productoBase.Stock < quantity)
-                    {
-                        throw new InsufficientQuantityOfProductsException($"El producto {productoBase.Descripcion} no tiene suficiente Stock para realizar la venta");
-                    }
-                    else
-                    {
-                        productoBase.Stock -= quantity;
-                        this.Update(productoBase, productoBase.Id);
-                    }
-                
+
+                Producto productoBase = this.Get(idProducto);
+                if (productoBase.Stock < quantity)
+                {
+                    throw new InsufficientQuantityOfProductsException($"El producto {productoBase.Descripciones} no tiene suficiente Stock para realizar la venta");
+                }
+                else
+                {
+                    productoBase.Stock -= quantity;
+                    this.Update(productoBase, productoBase.Id);
+                }
+
 
 
 
@@ -257,9 +294,9 @@ namespace ProyectoFinalAPI_Antozzi.Repository.SQLServer
                         using (SqlCommand cmd = new SqlCommand(sql, connection))
                         {
                             connection.Open();
-                            cmd.Parameters.Add(new SqlParameter("Descripciones", SqlDbType.Text) { Value = entity.Descripcion });
+                            cmd.Parameters.Add(new SqlParameter("Descripciones", SqlDbType.Text) { Value = entity.Descripciones });
                             cmd.Parameters.Add(new SqlParameter("Costo", SqlDbType.Decimal) { Value = entity.Costo });
-                            cmd.Parameters.Add(new SqlParameter("PrecioVenta", SqlDbType.Decimal) { Value = entity.PrecioDeVenta });
+                            cmd.Parameters.Add(new SqlParameter("PrecioVenta", SqlDbType.Decimal) { Value = entity.PrecioVenta });
                             cmd.Parameters.Add(new SqlParameter("Stock", SqlDbType.Int) { Value = entity.Stock });
                             cmd.Parameters.Add(new SqlParameter("IdUsuario", SqlDbType.BigInt) { Value = entity.IdUsuario });
                             cmd.Parameters.Add(new SqlParameter("id", SqlDbType.BigInt) { Value = id });

@@ -18,6 +18,12 @@ namespace ProyectoFinalAPI_Antozzi.Repository.Interfaces
         /// <param name="producto"></param>
         /// <param name="quantity"></param>
         void SubstractProductStock(Int64 idProducto, int quantity);
-     
+
+        /// <summary>
+        ///  Agrega cantidad quantity a el stock de el prodcuto encontrado con el idProducto
+        /// </summary>
+        /// <param name="idProducto"></param>
+        /// <param name="quantity"></param>
+        void AddProductStock(Int64 idProducto, int quantity);
     }
 }

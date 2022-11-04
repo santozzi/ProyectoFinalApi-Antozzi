@@ -11,6 +11,7 @@
 using System;
 using System.Reflection;
 
+[assembly: Microsoft.Extensions.Configuration.UserSecrets.UserSecretsIdAttribute("001d9d5b-a681-439f-a1bb-e6547446da14")]
 [assembly: System.Reflection.AssemblyCompanyAttribute("ProyectoFinalAPI-Antozzi")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]

@@ -27,7 +27,7 @@ namespace ProyectoFinalAPI_Antozzi.Entities
             set { id = value; } 
         }
         
-        public string Descripcion
+        public string Descripciones
         {
             get { return descripcion; }
             set { descripcion = value; }
@@ -41,7 +41,7 @@ namespace ProyectoFinalAPI_Antozzi.Entities
         }
       
 
-        public double PrecioDeVenta
+        public double PrecioVenta
         {
             get { return precioDeVenta; }
             set { precioDeVenta = value; }
@@ -64,7 +64,7 @@ namespace ProyectoFinalAPI_Antozzi.Entities
         }
 
         public override string ToString() {
-            string cadena = $"id: {this.Id} Descripcion: {this.Descripcion} Costo: {this.Costo} Venta: {this.PrecioDeVenta} Stock: {this.Stock}";
+            string cadena = $"id: {this.Id} Descripcion: {this.Descripciones} Costo: {this.Costo} Venta: {this.PrecioVenta} Stock: {this.Stock}";
 
             return cadena;
         }
